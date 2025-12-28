@@ -1,0 +1,301 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+b {
+  color: rgb(241, 112, 144);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.logo-image {
+  max-width: 3rem;
+  height: auto;
+  display: block;
+}
+
+.logo-text {
+  font-weight: 900;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 10px 16px;
+  color: rgb(0, 0, 0);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.nav {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.header-tab {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header p {
+  font-weight: 900;
+}
+
+.header ion-icon {
+  color: rgba(194, 54, 194, 0.486);
+}
+
+.other-tab {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.other-tab .search-bar {
+  border: 3px solid black;
+  border-radius: 50%;
+  padding: 6px 10px;
+}
+
+.hamburger {
+  display: none;
+  font-size: 1.8rem;
+  background: none;
+  border: none;
+  color: rgb(0, 0, 0);
+  cursor: pointer;
+}
+
+.content-section {
+  display: grid;
+  grid-template-columns: 2fr 3fr;
+  max-width: 1200px;
+  margin: 0 auto;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  column-gap: 25px;
+}
+
+.hero {
+  width: 100%;
+  height: 60vh;
+  max-height: 300px;
+  overflow: hidden;
+}
+
+.hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.profile-section {
+  position: relative;
+  top: -100px;
+  margin: 0;
+  margin-left: 20px;
+  line-height: 1;
+}
+
+.profile-image-container {
+  width: 100%;
+  max-width: 200px;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: 50%;
+  position: relative;
+  border: 5px solid white;
+  z-index: 2;
+}
+
+.profile-image {
+  width: 100%;
+  height: 100%;
+  transform: scale(1.1);
+  object-fit: cover;
+  display: block;
+}
+
+.profile-section h1 {
+  font-weight: 900;
+}
+
+.profile-section h4 {
+  margin-top: -20px;
+  opacity: 0.5;
+}
+
+.profile-section p {
+  letter-spacing: 1px;
+}
+
+.join-date {
+  letter-spacing: -3px;
+}
+
+.post-tab-section {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background-color: rgb(255, 190, 190);
+  padding-left: 20px;
+}
+
+.post-tab-section ion-icon {
+  scale: 1.5;
+}
+
+.decorator-section {
+  display: flex;
+  align-items: center;
+  margin: -20px;
+}
+
+.decorator-section h1,
+.decorator-section h3 {
+  font-weight: 900;
+}
+
+.post-tab {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+}
+
+.post-tab p {
+  font-weight: 900;
+  transition: color 0.2s ease;
+}
+
+.post-tab p:hover {
+  color: white;
+  cursor: pointer;
+}
+
+.posts-section h1,
+.posts-section h2,
+.posts-section h3,
+.posts-section h4,
+.posts-section h5,
+.posts-section h6,
+.posts-section p {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  margin-right: 20px;
+}
+
+footer {
+  margin: 0;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+  .nav {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  footer {
+    margin-top: 100px;
+  }
+
+  .post-tab-section {
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 10px;
+  }
+
+  .decorator-section {
+    margin: 0;
+  }
+
+  .header {
+    margin: 0;
+    flex-wrap: wrap;
+  }
+
+  .hamburger {
+    display: block;
+  }
+
+  .content-section {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+    margin: 0 auto;
+    gap: 20px;
+    padding: 0 10px;
+  }
+
+  .hero {
+    height: 40vh;
+    max-height: none;
+  }
+
+  .profile-section {
+    position: relative;
+    top: -50px;
+    margin-left: 0;
+    text-align: center;
+  }
+
+  .profile-image-container {
+    max-width: 150px;
+    margin: 0 auto;
+  }
+
+  .nav {
+    position: absolute;
+    top: 64px;
+    right: 0;
+    background: #ffffff;
+    flex-direction: column;
+    width: 90%;
+    max-width: 220px;
+    padding: 1rem;
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    z-index: 10;
+  }
+
+  .nav.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .header-tab,
+  .other-tab {
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .post-tab {
+    justify-content: center;
+  }
+}
