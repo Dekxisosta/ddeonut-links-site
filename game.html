@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Puffle's Meadow</title>
+<meta name="theme-color" content="#cfeebd">
+<link rel="shortcut icon" href="assets/favicon.ico" type="image/x-icon">
+<style>
+  :root { --pink:#f17090; --pink-deep:#d94f74; --ink:#2a1f25; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin:0; height:100%; overflow:hidden; background:#cfeebd; font-family: 'Inter', system-ui, sans-serif; color:var(--ink); touch-action:none; user-select:none; -webkit-user-select:none; }
+  #game { position:fixed; inset:0; width:100%; height:100%; display:block; }
+
+  .hud { position:fixed; top:12px; left:12px; right:12px; display:flex; justify-content:space-between; align-items:flex-start; gap:10px; pointer-events:none; z-index:5; }
+  .pill { background:rgba(255,255,255,.92); border:2px solid #ffbebe; border-radius:999px; padding:6px 14px; font-weight:800; font-size:.95rem; box-shadow:0 6px 16px -8px rgba(217,79,116,.5); }
+  .pill b { color:var(--pink-deep); }
+  .back { pointer-events:auto; text-decoration:none; color:var(--ink); }
+  .help { text-align:right; font-weight:600; font-size:.8rem; background:rgba(255,255,255,.85); padding:6px 12px; border-radius:12px; }
+  kbd { background:#fff; border:1.5px solid #ffbebe; border-bottom-width:3px; border-radius:6px; padding:0 6px; font-weight:800; font-family:inherit; }
+
+  #dialog { position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(20px); width:min(560px, calc(100% - 24px)); background:#fff; border:3px solid var(--pink); border-radius:18px; padding:14px 18px 22px; box-shadow:0 12px 30px -10px rgba(0,0,0,.35); opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:8; }
+  #dialog.open { opacity:1; transform:translateX(-50%); pointer-events:auto; }
+  #dialog .who { font-weight:900; color:var(--pink-deep); font-size:.85rem; letter-spacing:1px; margin-bottom:2px; }
+  #dialog .text { font-size:1.02rem; line-height:1.45; }
+  #dialog .next { position:absolute; right:16px; bottom:6px; font-size:.75rem; font-weight:800; color:var(--pink); animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity:.3; } }
+
+  /* touch controls */
+  .touch { display:none; }
+  body.touch-on .touch { display:block; }
+  body.touch-on .help { display:none; }
+  #stick { position:fixed; left:22px; bottom:26px; width:130px; height:130px; border-radius:50%; background:rgba(255,255,255,.55); border:3px solid rgba(241,112,144,.7); z-index:6; touch-action:none; }
+  #knob { position:absolute; left:50%; top:50%; width:56px; height:56px; margin:-28px 0 0 -28px; border-radius:50%; background:var(--pink); box-shadow:0 6px 14px -4px rgba(0,0,0,.4); }
+  #act { position:fixed; right:26px; bottom:36px; width:92px; height:92px; border-radius:50%; border:3px solid #fff; background:var(--pink); color:#fff; font-weight:900; font-size:1rem; box-shadow:0 8px 18px -6px rgba(0,0,0,.45); z-index:6; touch-action:none; }
+  #act:active, #act.down { background:var(--pink-deep); transform:scale(.94); }
+  #act.dim { opacity:.55; }
+  body.dialog-open #stick { opacity:.35; }
+</style>
+</head>
+<body>
+<svg id="game" xmlns="http://www.w3.org/2000/svg" aria-label="Game world"></svg>
+
+<div class="hud">
+  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    <a class="pill back" href="index.html">← Back</a>
+    <div class="pill">🌼 <b id="count">0</b> / <span id="total">0</span></div>
+  </div>
+  <div class="help">Move <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> · Interact <kbd>E</kbd></div>
+</div>
+
+<div id="dialog" role="dialog" aria-live="polite">
+  <div class="who" id="who"></div>
+  <div class="text" id="text"></div>
+  <div class="next">E ▸</div>
+</div>
+
+<div class="touch" id="stick" aria-label="Joystick"><div id="knob"></div></div>
+<button class="touch" id="act" type="button">TALK</button>
+
+<script>
+(() => {
+  "use strict";
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.getElementById("game");
+  const WORLD = { w: 1600, h: 1000 };
+
+  // ---------- tiny SVG helper ----------
+  function el(tag, attrs = {}, parent) {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+
+  // seeded random so the meadow is the same every visit
+  let seed = 42;
+  const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+  // ---------- scene layers ----------
+  const ground = el("g", {}, svg);
+  const things = el("g", {}, svg);   // y-sorted objects
+  const overlay = el("g", {}, svg);  // prompt bubble
+
+  el("rect", { x: 0, y: 0, width: WORLD.w, height: WORLD.h, fill: "#cfeebd" }, ground);
+  // soft grass patches
+  for (let i = 0; i < 26; i++) {
+    el("ellipse", { cx: rand() * WORLD.w, cy: rand() * WORLD.h, rx: 60 + rand() * 90, ry: 30 + rand() * 50, fill: i % 2 ? "#c2e6ad" : "#d8f2c8" }, ground);
+  }
+  // grass tufts
+  for (let i = 0; i < 160; i++) {
+    const x = rand() * WORLD.w, y = rand() * WORLD.h;
+    el("path", { d: `M${x} ${y} l-4 -9 M${x} ${y} l0 -11 M${x} ${y} l4 -9`, stroke: "#9fd085", "stroke-width": 2.5, "stroke-linecap": "round", fill: "none" }, ground);
+  }
+  // path
+  el("path", { d: "M-20 560 C 300 520, 500 640, 800 580 S 1300 480, 1620 540", stroke: "#f3e4c4", "stroke-width": 70, fill: "none", "stroke-linecap": "round", opacity: .9 }, ground);
+  // world border (fence-ish rounded frame)
+  el("rect", { x: 6, y: 6, width: WORLD.w - 12, height: WORLD.h - 12, rx: 30, fill: "none", stroke: "#a8d48f", "stroke-width": 12 }, ground);
+
+  // ---------- objects ----------
+  const solids = [];        // {x,y,r}
+  const interactables = []; // {x,y,range,label,act,el}
+  const sortables = [];     // {y,g}
+
+  function addSortable(g, x, y) { g.setAttribute("transform", `translate(${x} ${y})`); things.appendChild(g); const s = { g, x, y }; sortables.push(s); return s; }
+  function shadow(parent, rx = 20, ry = 7, y = 0) { el("ellipse", { cx: 0, cy: y, rx, ry, fill: "rgba(60,90,50,.22)" }, parent); }
+
+  function addTree(x, y, size = 1) {
+    const g = el("g");
+    shadow(g, 34 * size, 10 * size, 2);
+    el("rect", { x: -7 * size, y: -34 * size, width: 14 * size, height: 36 * size, rx: 5, fill: "#b98a62" }, g);
+    el("circle", { cx: 0, cy: -62 * size, r: 38 * size, fill: "#7cc27a" }, g);
+    el("circle", { cx: -16 * size, cy: -50 * size, r: 24 * size, fill: "#8fd18b" }, g);
+    el("circle", { cx: 18 * size, cy: -72 * size, r: 20 * size, fill: "#6fb56d" }, g);
+    addSortable(g, x, y);
+    solids.push({ x, y: y - 4, r: 16 * size });
+  }
+
+  function addPond(x, y) {
+    const g = el("g", {}, ground);
+    el("ellipse", { cx: x, cy: y, rx: 120, ry: 78, fill: "#a9d6ee" }, g);
+    el("ellipse", { cx: x, cy: y, rx: 104, ry: 64, fill: "#bfe6f7" }, g);
+    el("path", { d: `M${x - 50} ${y - 10} q20 -12 40 0 M${x + 10} ${y + 18} q18 -10 36 0`, stroke: "#fff", "stroke-width": 4, fill: "none", "stroke-linecap": "round", opacity: .8 }, g);
+    // lily pad
+    el("ellipse", { cx: x + 46, cy: y - 22, rx: 16, ry: 9, fill: "#7cc27a" }, g);
+    // collision: chain of circles approximating the ellipse
+    for (let a = 0; a < 12; a++) {
+      const t = (a / 12) * Math.PI * 2;
+      solids.push({ x: x + Math.cos(t) * 86, y: y + Math.sin(t) * 50, r: 30 });
+    }
+    solids.push({ x, y, r: 55 });
+  }
+
+  function addRock(x, y) {
+    const g = el("g");
+    shadow(g, 22, 7, 2);
+    el("path", { d: "M-22 0 Q-20 -22 0 -24 Q22 -22 22 0 Z", fill: "#c9c3d6" }, g);
+    el("path", { d: "M-10 -14 q8 -8 16 -2", stroke: "#e6e2ef", "stroke-width": 4, fill: "none", "stroke-linecap": "round" }, g);
+    addSortable(g, x, y);
+    solids.push({ x, y: y - 6, r: 20 });
+  }
+
+  const flowerColors = ["#ffd166", "#ff9bb3", "#fff", "#c9a7ff", "#ffb347"];
+  let collected = 0;
+  const flowers = [];
+  function addFlower(x, y, i) {
+    const g = el("g");
+    const c = flowerColors[i % flowerColors.length];
+    el("path", { d: "M0 0 q-3 -10 0 -18", stroke: "#6fb56d", "stroke-width": 3, fill: "none", "stroke-linecap": "round" }, g);
+    for (let k = 0; k < 5; k++) {
+      const a = (k / 5) * Math.PI * 2;
+      el("circle", { cx: Math.cos(a) * 6, cy: -20 + Math.sin(a) * 6, r: 5, fill: c, stroke: "#e7a", "stroke-width": c === "#fff" ? 1 : 0 }, g);
+    }
+    el("circle", { cx: 0, cy: -20, r: 3.5, fill: "#ffb703" }, g);
+    const s = addSortable(g, x, y);
+    const obj = { x, y, range: 52, label: "Pick", sprite: s, taken: false,
+      act() {
+        if (obj.taken) return;
+        obj.taken = true; collected++;
+        g.remove(); sortables.splice(sortables.indexOf(s), 1);
+        interactables.splice(interactables.indexOf(obj), 1);
+        burst(x, y - 20, c);
+        updateHud();
+        if (collected === flowers.length) setTimeout(() => say("Pip the Frog", ["You found every flower!", "The whole meadow is smiling. Thank you!"]), 400);
+      } };
+    flowers.push(obj); interactables.push(obj);
+  }
+
+  // little sparkle burst on pickup
+  const sparks = [];
+  function burst(x, y, color) {
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      const c = el("circle", { r: 4, fill: color }, overlay);
+      sparks.push({ c, x, y, vx: Math.cos(a) * 90, vy: Math.sin(a) * 90 - 30, life: .5 });
+    }
+  }
+
+  function addSign(x, y) {
+    const g = el("g");
+    shadow(g, 20, 6, 2);
+    el("rect", { x: -4, y: -30, width: 8, height: 32, fill: "#b98a62" }, g);
+    el("rect", { x: -30, y: -58, width: 60, height: 34, rx: 6, fill: "#e8c28f", stroke: "#b98a62", "stroke-width": 3 }, g);
+    el("path", { d: "M-18 -46 h36 M-18 -36 h24", stroke: "#a0764d", "stroke-width": 3, "stroke-linecap": "round" }, g);
+    addSortable(g, x, y);
+    solids.push({ x, y: y - 4, r: 12 });
+    interactables.push({ x, y, range: 62, label: "Read", act: () => say("Signpost", ["Welcome to Puffle's Meadow! 🌿", "Pick the flowers scattered around. Stand close and press interact."]) });
+  }
+
+  function addFrog(x, y) {
+    const g = el("g");
+    shadow(g, 26, 8, 2);
+    const body = el("g", {}, g);
+    el("ellipse", { cx: 0, cy: -16, rx: 26, ry: 20, fill: "#8fd18b", stroke: "#5da95b", "stroke-width": 3 }, body);
+    el("circle", { cx: -14, cy: -34, r: 10, fill: "#8fd18b", stroke: "#5da95b", "stroke-width": 3 }, body);
+    el("circle", { cx: 14, cy: -34, r: 10, fill: "#8fd18b", stroke: "#5da95b", "stroke-width": 3 }, body);
+    el("circle", { cx: -14, cy: -35, r: 4, fill: "#2a1f25" }, body);
+    el("circle", { cx: 14, cy: -35, r: 4, fill: "#2a1f25" }, body);
+    el("path", { d: "M-9 -14 q9 8 18 0", stroke: "#2a1f25", "stroke-width": 3, fill: "none", "stroke-linecap": "round" }, body);
+    el("circle", { cx: -18, cy: -12, r: 5, fill: "#ff9bb3", opacity: .7 }, body);
+    el("circle", { cx: 18, cy: -12, r: 5, fill: "#ff9bb3", opacity: .7 }, body);
+    addSortable(g, x, y);
+    solids.push({ x, y: y - 6, r: 22 });
+    frogBody = body;
+    interactables.push({ x, y, range: 70, label: "Talk", act: () => {
+      if (collected === flowers.length) return say("Pip the Frog", ["Ribbit! The meadow has never looked so lovely.", "You can keep wandering as long as you like."]);
+      if (collected === 0) return say("Pip the Frog", ["Ribbit! Oh, hello little puff.", "Could you gather the flowers for me? There are " + flowers.length + " hiding around the meadow."]);
+      say("Pip the Frog", [`Ribbit! You've found ${collected} so far.`, `${flowers.length - collected} more to go. Keep looking!`]);
+    } });
+  }
+  let frogBody;
+
+  // ---------- build the meadow ----------
+  addPond(1180, 250);
+  [[160, 200, 1.1], [320, 140, .9], [90, 420, 1], [260, 820, 1.1], [520, 880, .9], [700, 160, 1], [1020, 700, 1.1],
+   [1400, 780, 1], [1500, 480, .9], [880, 900, 1], [560, 360, .8], [1380, 120, 1]].forEach(a => addTree(...a));
+  [[430, 700], [1280, 520], [760, 420]].forEach(a => addRock(...a));
+  addSign(560, 520);
+  addFrog(820, 700);
+  [[250, 330], [420, 560], [640, 800], [980, 480], [1050, 880], [1340, 640], [1480, 300], [720, 280], [200, 700], [1180, 430]]
+    .forEach((p, i) => addFlower(p[0], p[1], i));
+
+  // ---------- the hero: Puffle (original character) ----------
+  const player = { x: 400, y: 600, vx: 0, vy: 0, face: 1, r: 14, t: 0 };
+  const pg = el("g");
+  const pShadow = el("ellipse", { cx: 0, cy: 2, rx: 22, ry: 7, fill: "rgba(60,90,50,.25)" }, pg);
+  const flip = el("g", {}, pg);
+  const bob = el("g", {}, flip);
+  // feet
+  const footL = el("ellipse", { cx: -10, cy: -3, rx: 7, ry: 5, fill: "#fff6ea", stroke: "#8a6a5a", "stroke-width": 2.5 }, bob);
+  const footR = el("ellipse", { cx: 10, cy: -3, rx: 7, ry: 5, fill: "#fff6ea", stroke: "#8a6a5a", "stroke-width": 2.5 }, bob);
+  // fluffy body
+  el("path", { d: "M-30 -26 C-30 -58 -14 -66 0 -66 C14 -66 30 -58 30 -26 C30 -8 16 -3 0 -3 C-16 -3 -30 -8 -30 -26Z", fill: "#fff6ea", stroke: "#8a6a5a", "stroke-width": 3, "stroke-linejoin": "round" }, bob);
+  // fur tufts
+  el("path", { d: "M-30 -30 l-8 -3 M-29 -22 l-8 2 M30 -30 l8 -3 M29 -22 l8 2", stroke: "#8a6a5a", "stroke-width": 2.5, "stroke-linecap": "round" }, bob);
+  // sprout on head
+  el("path", { d: "M0 -66 q-2 -10 0 -16", stroke: "#6fb56d", "stroke-width": 3.5, fill: "none", "stroke-linecap": "round" }, bob);
+  el("path", { d: "M0 -80 q-14 -6 -16 6 q12 4 16 -6Z", fill: "#8fd18b", stroke: "#5da95b", "stroke-width": 2 }, bob);
+  el("path", { d: "M0 -80 q14 -8 17 4 q-12 6 -17 -4Z", fill: "#a6e3a1", stroke: "#5da95b", "stroke-width": 2 }, bob);
+  // face
+  const eyeL = el("ellipse", { cx: -11, cy: -36, rx: 3.2, ry: 4.2, fill: "#2a1f25" }, bob);
+  const eyeR = el("ellipse", { cx: 11, cy: -36, rx: 3.2, ry: 4.2, fill: "#2a1f25" }, bob);
+  el("circle", { cx: -20, cy: -28, r: 5, fill: "#ff9bb3", opacity: .65 }, bob);
+  el("circle", { cx: 20, cy: -28, r: 5, fill: "#ff9bb3", opacity: .65 }, bob);
+  el("path", { d: "M-4 -29 q4 4 8 0", stroke: "#2a1f25", "stroke-width": 2.5, fill: "none", "stroke-linecap": "round" }, bob);
+  const ps = addSortable(pg, player.x, player.y);
+
+  // interaction prompt bubble
+  const prompt = el("g", { opacity: 0 }, overlay);
+  el("rect", { x: -38, y: -26, width: 76, height: 26, rx: 13, fill: "#fff", stroke: "#f17090", "stroke-width": 3 }, prompt);
+  const promptText = el("text", { x: 0, y: -8, "text-anchor": "middle", "font-family": "Inter, system-ui, sans-serif", "font-weight": 800, "font-size": 13, fill: "#d94f74" }, prompt);
+  el("path", { d: "M-6 0 l6 8 l6 -8Z", fill: "#f17090" }, prompt);
+
+  // ---------- input ----------
+  const keys = new Set();
+  const moveKeys = { w: "u", arrowup: "u", s: "d", arrowdown: "d", a: "l", arrowleft: "l", d: "r", arrowright: "r" };
+  addEventListener("keydown", e => {
+    const k = e.key.toLowerCase();
+    if (k in moveKeys) { keys.add(moveKeys[k]); e.preventDefault(); }
+    if ((k === "e" || k === "enter" || k === " ") && !e.repeat) { interact(); e.preventDefault(); }
+  });
+  addEventListener("keyup", e => { const k = e.key.toLowerCase(); if (k in moveKeys) keys.delete(moveKeys[k]); });
+  addEventListener("blur", () => keys.clear());
+
+  // joystick
+  const stick = document.getElementById("stick"), knob = document.getElementById("knob"), act = document.getElementById("act");
+  const joy = { x: 0, y: 0, id: null };
+  function enableTouch() { document.body.classList.add("touch-on"); }
+  if (matchMedia("(pointer: coarse)").matches || "ontouchstart" in window) enableTouch();
+  addEventListener("touchstart", enableTouch, { once: true, passive: true });
+
+  function joyMove(e) {
+    const r = stick.getBoundingClientRect(), max = r.width / 2 - 10;
+    let dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+    const d = Math.hypot(dx, dy);
+    if (d > max) { dx = dx / d * max; dy = dy / d * max; }
+    knob.style.transform = `translate(${dx}px, ${dy}px)`;
+    joy.x = dx / max; joy.y = dy / max;
+  }
+  function joyEnd() { joy.id = null; joy.x = joy.y = 0; knob.style.transform = ""; }
+  stick.addEventListener("pointerdown", e => { joy.id = e.pointerId; stick.setPointerCapture(e.pointerId); joyMove(e); e.preventDefault(); });
+  stick.addEventListener("pointermove", e => { if (e.pointerId === joy.id) joyMove(e); });
+  stick.addEventListener("pointerup", joyEnd);
+  stick.addEventListener("pointercancel", joyEnd);
+  act.addEventListener("pointerdown", e => { e.preventDefault(); act.classList.add("down"); interact(); });
+  ["pointerup", "pointerleave", "pointercancel"].forEach(t => act.addEventListener(t, () => act.classList.remove("down")));
+  document.getElementById("dialog").addEventListener("pointerdown", () => interact());
+
+  // ---------- dialog ----------
+  const dlg = document.getElementById("dialog"), whoEl = document.getElementById("who"), textEl = document.getElementById("text");
+  let lines = [], lineIdx = 0, dialogOpen = false;
+  function say(who, arr) { lines = arr; lineIdx = 0; whoEl.textContent = who.toUpperCase(); textEl.textContent = lines[0]; dlg.classList.add("open"); dialogOpen = true; document.body.classList.add("dialog-open"); }
+  function closeDialog() { dlg.classList.remove("open"); dialogOpen = false; document.body.classList.remove("dialog-open"); }
+
+  let near = null;
+  function interact() {
+    if (dialogOpen) { lineIdx++; if (lineIdx >= lines.length) closeDialog(); else textEl.textContent = lines[lineIdx]; return; }
+    if (near) near.act();
+  }
+
+  const countEl = document.getElementById("count");
+  document.getElementById("total").textContent = flowers.length;
+  function updateHud() { countEl.textContent = collected; }
+
+  // ---------- camera / resize ----------
+  let vw = 800, vh = 500;
+  function resize() {
+    const s = Math.max(.8, Math.min(2.2, Math.min(innerWidth / 760, innerHeight / 480)));
+    vw = innerWidth / s; vh = innerHeight / s;
+  }
+  addEventListener("resize", resize); resize();
+
+  // ---------- loop ----------
+  let last = performance.now(), time = 0;
+  const SPEED = 210;
+  function frame(now) {
+    const dt = Math.min(.05, (now - last) / 1000); last = now; time += dt;
+
+    // movement
+    let ix = (keys.has("r") ? 1 : 0) - (keys.has("l") ? 1 : 0) + joy.x;
+    let iy = (keys.has("d") ? 1 : 0) - (keys.has("u") ? 1 : 0) + joy.y;
+    const m = Math.hypot(ix, iy);
+    if (m > 1) { ix /= m; iy /= m; }
+    if (dialogOpen || m < .12) { ix = iy = 0; }
+    const moving = ix !== 0 || iy !== 0;
+    player.x += ix * SPEED * dt; player.y += iy * SPEED * dt;
+    if (ix > .1) player.face = 1; else if (ix < -.1) player.face = -1;
+
+    // collisions: push out of solids
+    for (const s of solids) {
+      const dx = player.x - s.x, dy = player.y - s.y, d = Math.hypot(dx, dy), min = s.r + player.r;
+      if (d < min && d > .001) { player.x = s.x + dx / d * min; player.y = s.y + dy / d * min; }
+    }
+    player.x = Math.max(40, Math.min(WORLD.w - 40, player.x));
+    player.y = Math.max(90, Math.min(WORLD.h - 30, player.y));
+
+    // animate character
+    if (moving) player.t += dt * 12; else player.t += dt * 2.5;
+    const hop = moving ? Math.abs(Math.sin(player.t)) * 7 : Math.sin(player.t) * 1.2;
+    bob.setAttribute("transform", `translate(0 ${-hop}) scale(${1 + (moving ? Math.sin(player.t * 2) * .03 : 0)} ${1 - (moving ? Math.sin(player.t * 2) * .03 : 0)})`);
+    flip.setAttribute("transform", `scale(${player.face} 1)`);
+    pShadow.setAttribute("rx", 22 - hop * .6);
+    const blink = (time % 3.4) > 3.28;
+    eyeL.setAttribute("ry", blink ? .6 : 4.2); eyeR.setAttribute("ry", blink ? .6 : 4.2);
+    ps.x = player.x; ps.y = player.y; ps.g.setAttribute("transform", `translate(${player.x} ${player.y})`);
+
+    // frog idle bounce
+    if (frogBody) frogBody.setAttribute("transform", `translate(0 ${-Math.abs(Math.sin(time * 2)) * 3})`);
+
+    // nearest interactable
+    near = null; let best = 1e9;
+    for (const o of interactables) {
+      const d = Math.hypot(o.x - player.x, o.y - player.y);
+      if (d < o.range && d < best) { best = d; near = o; }
+    }
+    if (near && !dialogOpen) {
+      promptText.textContent = (document.body.classList.contains("touch-on") ? "" : "E · ") + near.label;
+      prompt.setAttribute("transform", `translate(${near.x} ${near.y - 96 + Math.sin(time * 5) * 2})`);
+      prompt.setAttribute("opacity", 1);
+    } else prompt.setAttribute("opacity", 0);
+    act.classList.toggle("dim", !near && !dialogOpen);
+    act.textContent = dialogOpen ? "NEXT" : (near ? near.label.toUpperCase() : "TALK");
+
+    // sparks
+    for (let i = sparks.length - 1; i >= 0; i--) {
+      const s = sparks[i]; s.life -= dt;
+      if (s.life <= 0) { s.c.remove(); sparks.splice(i, 1); continue; }
+      s.x += s.vx * dt; s.y += s.vy * dt; s.vy += 160 * dt;
+      s.c.setAttribute("cx", s.x); s.c.setAttribute("cy", s.y); s.c.setAttribute("opacity", s.life * 2);
+    }
+
+    // y-sort
+    sortables.sort((a, b) => a.y - b.y).forEach(s => things.appendChild(s.g));
+
+    // camera
+    let cx = player.x, cy = player.y - 20;
+    cx = vw >= WORLD.w ? WORLD.w / 2 : Math.max(vw / 2, Math.min(WORLD.w - vw / 2, cx));
+    cy = vh >= WORLD.h ? WORLD.h / 2 : Math.max(vh / 2, Math.min(WORLD.h - vh / 2, cy));
+    svg.setAttribute("viewBox", `${cx - vw / 2} ${cy - vh / 2} ${vw} ${vh}`);
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // greet
+  setTimeout(() => say("Puffle", ["Hi! I'm Puffle. 🌱", "Let's explore. Maybe the frog by the path needs help?"]), 500);
+})();
+</script>
+</body>
+</html>
