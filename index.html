@@ -3,100 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ddeonut Site</title>
+    <title>Ddeonut · Minchie's Corner</title>
+    <meta name="description" content="Minchie (@minchieyt) — K-pop, BL edits, anime and random interests. Watch the latest videos.">
+    <meta name="theme-color" content="#f17090">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="style.css">
     <link rel="shortcut icon" href="assets/favicon.ico" type="image/x-icon">
 </head>
 <body>
-    <header class="header">
-        <div class="logo">
-            <img class="logo-image" src="assets/momonga-logo.png" alt="">
-            <h2 class="logo-text">MOMONGA</h2>
+    <header class="site-header">
+        <div class="header">
+            <a class="logo" href="#top" aria-label="Momonga home">
+                <img class="logo-image" src="assets/momonga-logo.png" alt="">
+                <span class="logo-text">MOMONGA</span>
+            </a>
+
+            <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="nav">☰</button>
+
+            <nav class="nav" id="nav" aria-label="Main">
+                <a class="header-tab" href="#top"><ion-icon name="home"></ion-icon><span>HOME</span></a>
+                <a class="header-tab is-inactive" href="#" aria-disabled="true"><ion-icon name="logo-twitter"></ion-icon><span>TWITTER</span></a>
+                <a class="header-tab is-inactive" href="#" aria-disabled="true"><ion-icon name="logo-facebook"></ion-icon><span>FACEBOOK</span></a>
+                <a class="header-tab" href="game.html"><ion-icon name="game-controller"></ion-icon><span>GAME</span></a>
+                <a class="header-tab" href="https://www.youtube.com/@minchieyt" target="_blank" rel="noopener"><ion-icon name="logo-youtube"></ion-icon><span>YOUTUBE</span></a>
+            </nav>
         </div>
-
-        <!-- Hamburger -->
-        <button class="hamburger" id="hamburger">
-        ☰
-        </button>
-
-        <!-- Nav -->
-        <nav class="nav" id="nav">
-            <div class="header-tab">
-                <ion-icon name="home"></ion-icon>
-                <p>HOME</p>
-            </div>
-            <div class="header-tab">
-                <ion-icon name="logo-twitter"></ion-icon>
-                <p>TWITTER</p>
-            </div>
-            <div class="header-tab">
-                <ion-icon name="logo-facebook"></ion-icon>
-                <p>FACEBOOK</p>
-            </div>
-            <div class="header-tab">
-                <ion-icon name="logo-youtube"></ion-icon>
-                <p>YOUTUBE</p>
-            </div>
-        </nav>
     </header>
 
 
-    <!--HERO SECTION-->
+    <main id="top">
+    <!-- HERO -->
     <section class="hero">
-        <img class="hero-image" src="assets/wallpaper.jpg">
+        <img class="hero-image" src="assets/wallpaper.jpg" alt="Pink flowers and eucalyptus leaves">
+        <h2 class="wave-title" aria-label="Minchie"><span style="--i:0">M</span><span style="--i:1">I</span><span style="--i:2">N</span><span style="--i:3">C</span><span style="--i:4">H</span><span style="--i:5">I</span><span style="--i:6">E</span></h2>
     </section>
 
-    <section class="content-section">
-        <!--
-        ============================
-        PROFILE SECTION
-        ============================
-        -->
-        <section class="profile-section">
-            <section class="profile-image-container">
-                <img class="profile-image" src="assets/momonga-profile.png" alt="">
-            </section>
-            <h1>DDEONUT</h11>
-            <h4>@minchie_yt</h4>
-            <p>Minchie. Female. Capricorn. INTP. ZeroBaseOne. BL. Anime. Random Interests. Accountancy. Ddeonut touch me!</p>
-            <p class="join-date"><ion-icon name="calendar-outline"></ion-icon> Server Join: 12/29/05</p>
-            <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/track/6Sj39jSqhxjJ8K66Mw8hrU?utm_source=generator&theme=0" width="100%" height="100" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-        </section>
-
-        <!--
-        ============================
-        POSTS SECTION
-        ============================
-        -->
-        <section class="posts-section">
-            <nav class="post-tab-section">
-                <div class="post-tab">
-                    <p>HOME</p>
-                </div>
-                <div class="post-tab">
-                    <p>YOUTUBE</p>
-                </div>
-                <div class="post-tab">
-                    <p>PORTFOLIO</p>
-                </div>
-                <div class="post-tab">
-                    <p>PINTEREST</p>
-                </div>
-            </nav>
-            <p>---------------</p>
-            <div class="decorator-section">
-                <h1>POSTS</h1>
-                <h3>MOMONGA</h3>
+    <div class="content-section">
+        <!-- PROFILE -->
+        <aside class="profile-section">
+            <div class="profile-image-container">
+                <img class="profile-image" src="assets/momonga-profile.png" alt="Momonga profile picture">
             </div>
-                <h2><ion-icon style="right: 0;" name="pricetags"></ion-icon> &nbsp; - - about me </ion-icon></h2>
+            <h1>DDEONUT</h1>
+            <p class="handle">@minchie_yt</p>
+            <ul class="chips" aria-label="Interests">
+                <li>Minchie</li><li>Female</li><li>Capricorn</li><li>INTP</li>
+                <li>ZeroBaseOne</li><li>BL</li><li>Anime</li><li>Accountancy</li>
+            </ul>
+            <p class="tagline">Random interests. Ddeonut touch me!</p>
+            <p class="join-date"><ion-icon name="calendar-outline"></ion-icon> Server Join: 12/29/05</p>
+            <iframe class="spotify" title="Spotify player" data-testid="embed-iframe" src="https://open.spotify.com/embed/track/6Sj39jSqhxjJ8K66Mw8hrU?utm_source=generator&amp;theme=0" width="100%" height="100" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+            <p class="subs" id="subs" hidden><ion-icon name="people"></ion-icon> <strong id="subs-count">—</strong> subscribers</p>
+            <a class="btn" href="https://www.youtube.com/@minchieyt?sub_confirmation=1" target="_blank" rel="noopener"><ion-icon name="logo-youtube"></ion-icon> Subscribe on YouTube</a>
+        </aside>
+
+        <!-- POSTS -->
+        <section class="posts-section">
+            <nav class="post-tab-section" aria-label="Sections">
+                <a class="post-tab is-active" href="#about">HOME</a>
+                <a class="post-tab" href="#details">DETAILS</a>
+                <a class="post-tab" href="#videos">YOUTUBE</a>
+                <span class="post-tab is-soon" title="Coming soon">PORTFOLIO</span>
+                <span class="post-tab is-soon" title="Coming soon">PINTEREST</span>
+            </nav>
+
+            <div class="decorator-section">
+                <h2>POSTS</h2>
+                <span class="decorator-sub">MOMONGA</span>
+            </div>
+
+            <article class="card" id="about">
+                <h3><ion-icon name="pricetags"></ion-icon> about me</h3>
                 <p>Hi! I’m a <b>K-pop enthusiast and BL content creator</b>, a huge fan of <b>Zero Base One</b>, <b>Stray Kids</b>, and K-pop in general. I love sharing my thoughts and creations in the BL community, and I’m also a fan of <b>Jaiden animations</b>. I enjoy <b>Ado</b> and <b>J-pop</b> as well. Lately, I’ve been getting into <b>Pokémon</b> and would love to start exploring <b>drawing</b> myself. I also enjoy <b>graphic designing</b> and <b>video-editing</b>. I like watching <b>BetaSquad</b> while eating and playing Roblox games like <b>99 Nights</b>, <b>Create Words or Die</b>, <b>Last Letter</b>, <b>Obby</b>, and more. Always excited to learn, create, and chat about music, anime, BL content, or anything K-pop related!</p>
+            </article>
+
+
+            <article class="card profile-card" id="details">
+                <h3><ion-icon name="sparkles"></ion-icon> profile details</h3>
+
+                <div class="pc-head">
+                    <h4 class="pc-name">MINCHIE !!</h4>
+                    <p class="pc-sub">she/her + capricorn · INTP · <span class="hl">ZeroBaseOne</span> stan</p>
+                    <ul class="chips"><li>BL edits</li><li>K-pop</li><li>anime</li><li>accountancy</li></ul>
+                </div>
+
+                <div class="zigzag" aria-hidden="true"></div>
+
+                <div class="pc-two">
+                    <section class="pc-box">
+                        <h5>BYF . . . ?!</h5>
+                        <p>you like K-pop, BL, anime, Pokémon or Roblox, and you’re up for chatting about music and random interests :D</p>
+                    </section>
+                    <section class="pc-box pc-box-dark">
+                        <h5>DNFI . . . ?!</h5>
+                        <p>you reupload my edits, leave hateful comments, or react to my videos without asking for credit or permission first.</p>
+                    </section>
+                </div>
+
+                <p class="pc-note"><span class="hl hl-strong">IMPORTANT NOTE</span> my edits are fan-made and not affiliated with any company or the actors in them. Uploads can be slow because of school, thank you for waiting &lt;3</p>
+
+                <div class="pc-love">Minchie’s Love Space</div>
+
+                <div class="pc-favs">
+                    <figure><div class="fav-tile t1"><ion-icon name="musical-notes"></ion-icon></div><figcaption>Fave Group<br><b>ZEROBASEONE</b></figcaption></figure>
+                    <figure><div class="fav-tile t2"><ion-icon name="film"></ion-icon></div><figcaption>Fave Hobby<br><b>Video Editing</b></figcaption></figure>
+                    <figure><div class="fav-tile t3"><ion-icon name="game-controller"></ion-icon></div><figcaption>Fave Game<br><b>99 Nights</b></figcaption></figure>
+                    <figure><div class="fav-tile t4"><ion-icon name="play-circle"></ion-icon></div><figcaption>Fave Watch<br><b>Jaiden Animations</b></figcaption></figure>
+                </div>
+
+                <div class="pc-two pc-two-lists">
+                    <section class="pc-list">
+                        <p class="label"><span class="hl">MY COMFORTS</span></p>
+                        <p>Stray Kids, Ado, J-pop, BetaSquad, Pokémon, anime &amp; BL, Roblox (Create Words or Die, Last Letter, Obby)</p>
+                    </section>
+                    <section class="pc-list">
+                        <p><span class="yes">YES<i>YES</i>YES</span> K-pop, BL, anime, animals, drawing, graphic design</p>
+                        <p><span class="no">NO<i>NO</i>NO</span> reuploads, hate, no-credit reactions</p>
+                    </section>
+                </div>
+
+                <div class="pc-info">
+                    <span class="pc-info-label">SERVER JOIN</span>
+                    <span>12/29/05 · <a href="#videos">click to see something cool</a></span>
+                </div>
+            </article>
+
+            <article class="card" id="videos">
+                <h3><ion-icon name="logo-youtube"></ion-icon> latest videos</h3>
+                <p class="muted">Fan-made edits, straight from the <a href="https://www.youtube.com/@minchieyt" target="_blank" rel="noopener">@minchieyt</a> channel.</p>
+
+                <!-- Auto-updating: the channel's uploads playlist (UU + channel ID without "UC") -->
+                <div class="video-frame">
+                    <iframe
+                        src="https://www.youtube-nocookie.com/embed/videoseries?list=UUb0_5BrT-SJqLAt9lJTaEHw"
+                        title="Minchie — latest uploads"
+                        loading="lazy"
+                        allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen></iframe>
+                </div>
+
+                <!-- Optional pinned videos: add IDs to VIDEOS in script.js -->
+                <div class="video-grid" id="video-grid" hidden></div>
+
+                <a class="btn btn-ghost" href="https://www.youtube.com/@minchieyt/videos" target="_blank" rel="noopener">See all videos <ion-icon name="arrow-forward"></ion-icon></a>
+            </article>
         </section>
-    </section>
-    <footer style="background-color: rgb(241, 112, 144); color: white; text-align: center; padding: 5px; font-family: 'Inter', sans-serif;">
-        <p>&copy; 2025 Dekxisosta. Happy Birthday!</p>
-    </footer>
-</body>
+    </div>
+</main>
+
+<footer class="site-footer">
+    <svg class="footer-wave" viewBox="0 0 1440 60" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30 C 180 0, 360 60, 540 30 S 900 0, 1080 30 S 1300 55, 1440 25 V60 H0Z"/></svg>
+    <div class="footer-inner">
+        <div class="footer-brand">
+            <div class="footer-logo"><img src="assets/momonga-logo.png" alt=""><span>MOMONGA</span></div>
+            <p>Fan-made edits, K-pop feels and random interests. Thanks for stopping by!</p>
+        </div>
+        <nav class="footer-col" aria-label="Footer">
+            <h6>Explore</h6>
+            <a href="#about">About me</a>
+            <a href="#details">Profile details</a>
+            <a href="#videos">Videos</a>
+            <a href="game.html">Play the game</a>
+        </nav>
+        <div class="footer-col">
+            <h6>Find me</h6>
+            <a href="https://www.youtube.com/@minchieyt" target="_blank" rel="noopener"><ion-icon name="logo-youtube"></ion-icon> YouTube</a>
+            <span class="soon"><ion-icon name="logo-twitter"></ion-icon> Twitter (soon)</span>
+            <span class="soon"><ion-icon name="logo-facebook"></ion-icon> Facebook (soon)</span>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2025 Dekxisosta. Happy Birthday! 🎂</p>
+        <p class="fine">Fan-made and not affiliated with any company or the people featured.</p>
+        <a class="to-top" href="#top" aria-label="Back to top"><ion-icon name="arrow-up"></ion-icon></a>
+    </div>
+</footer>
 <script src="script.js"></script>
 <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
 <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</body>
 </html>

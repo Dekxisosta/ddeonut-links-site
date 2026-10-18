@@ -13,7 +13,7 @@
 
 
 ## 🌸 Description
-Designed and built a simple birthday website in under an hour, using no external dependencies to maximize performance and loading speed. The social media links are currently inactive.
+A birthday website with a sticky header, profile card, Spotify player and YouTube embeds (the channel's latest uploads, plus optional pinned videos). Embeds load lazily via youtube-nocookie. The social media links are currently inactive.
 
 
 ## 🌸 Desktop View
